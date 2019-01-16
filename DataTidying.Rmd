@@ -10,10 +10,12 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-```{r, warning=FALSE,error=FALSE}
+```{r, warning=FALSE, message=FALSE}
+
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+
 ```
 
 # Data Cleaning
@@ -26,6 +28,46 @@ catch_df <- read.csv(file = "https://knb.ecoinformatics.org/knb/d1/mn/v2/object/
 
 head(catch_df)
 ```
+
+cmd + shift + m %>% pipe operator
+
+
+In the following functional chunk, we removed two of the columns (marginal sum and notes). The we gathered all the data by adding a species key, but kept the region and year. Now each column represents a single observation.
+
+```{r}
+
+catch_long <- catch_df %>%
+  select(-All,-notesRegCode) %>% 
+  gather(key = "species", value = "catch",-Region,-Year) 
+summary(catch_long)
+head(catch_long)
+```
+
+Note that the summary shows there are some errors in the dataset, because it included the "catch" column in the "Character" class whereas it should be numeric.
+
+
+
+
+
+```{r}
+catch_cleaned <- catch_long %>%
+  rename(catch_thousands = catch) #%>%
+ # mutate(catch = catch_thousands * 1000)
+  
+head(catch_cleaned)
+```
+
+
+```{r}
+test_catch <- as.integer(catch_cleaned$catch_thousands)
+
+i <- which(is.na(test_catch)==TRUE)
+
+j <- which(test_catch>=25000)
+
+catch_cleaned[j,]
+```
+
 
 
 # Split-Apply-Combine
