@@ -21,7 +21,10 @@ library(ggplot2)
 Read in Data File
 
 ```{r}
-catch <- read.csv(file = "https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.302.1")
+catch_df <- read.csv(file = "https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.302.1",
+                     stringsAsFactors = FALSE)
+
+head(catch_df)
 ```
 
 
