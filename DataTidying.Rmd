@@ -32,7 +32,7 @@ head(catch_df)
 cmd + shift + m %>% pipe operator
 
 
-In the following functional chunk, we removed two of the columns (marginal sum and notes). The we gathered all the data by adding a species key, but kept the region and year. Now each column represents a single observation.
+In the following functional chunk, we removed two of the columns (marginal sum and notes). The we gathered all the data by adding a species key, but kept the region and year. Now each column represents a single observation. We have converted the data from a "wide" format (lots of columns) to a long format (lots of rows).
 
 ```{r}
 
@@ -43,22 +43,20 @@ summary(catch_long)
 head(catch_long)
 ```
 
-Note that the summary shows there are some errors in the dataset, because it included the "catch" column in the "Character" class whereas it should be numeric.
-
-
-
-
+Note that the summary shows there are some errors in the dataset, because it included the "catch" column in the "Character" class whereas it should be numeric. So I found the bad character, which was an "I" but it was supposed to be a one. So I replaced it. 
 
 ```{r}
 catch_cleaned <- catch_long %>%
-  rename(catch_thousands = catch) #%>%
- # mutate(catch = catch_thousands * 1000)
-  
+  rename(catch_thousands = catch) %>%
+  mutate(catch_thousands = ifelse(catch_thousands == "I", "1", catch_thousands)) %>% 
+  mutate(catch_thousands = as.integer(catch_thousands)) %>% 
+  mutate(catch = catch_thousands * 1000)
+
 head(catch_cleaned)
 ```
 
 
-```{r}
+```{r, eval=FALSE, echo = FALSE}
 test_catch <- as.integer(catch_cleaned$catch_thousands)
 
 i <- which(is.na(test_catch)==TRUE)
@@ -68,8 +66,58 @@ j <- which(test_catch>=25000)
 catch_cleaned[j,]
 ```
 
-
+Now the data is ready for analysis.
 
 # Split-Apply-Combine
 
+```{r}
+catch_total <- catch_cleaned %>%
+  filter(catch>0) %>% 
+  group_by(Year,Region) %>% 
+#  summarize(catch_region = mean(catch))
+
+  summarize(catch_region = mean(catch), n_obs = n(), stdev_catch = sd(catch))
+
+catch_total
+#head(catch_cleaned)
+```
+
+
+Filter for different kinds of salmon and rearrange the data.
+
+```{r, eval=FALSE,echo=FALSE}
+catch_chinook <- catch_total %>% 
+  filter(species == "Chinook" | species == "Chum") %>% 
+  arrange(-Year)
+head(catch_chinook)
+#plot(catch_total)
+```
+
+
+
 # Joins
+
+Read in a second table to practice joins.
+```{r}
+region_defs <- read.csv(url("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.303.1", method = "libcurl"),
+                        stringsAsFactors = FALSE)
+head(region_defs)
+```
+
+
+```{r}
+region_clean <- region_defs %>% 
+  select("code","mgmtArea") %>% 
+  rename("Region" = "code")
+  #remove the columns we don't need
+head(region_clean)
+```
+
+
+```{r}
+
+catch_joined <- left_join(catch_cleaned,region_clean)
+head(catch_joined)
+
+```
+
