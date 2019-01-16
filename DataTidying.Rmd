@@ -10,11 +10,20 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-```{r}
-
+```{r, warning=FALSE,error=FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
 ```
 
 # Data Cleaning
+
+Read in Data File
+
+```{r}
+catch <- read.csv(file = "https://knb.ecoinformatics.org/knb/d1/mn/v2/object/df35b.302.1")
+```
+
 
 # Split-Apply-Combine
 
