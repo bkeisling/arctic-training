@@ -9,22 +9,100 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+Load in libraries
+```{r, warning = F, message = F}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(DT)
 ```
 
-## Including Plots
+Read in data from: Alaska Department of Fish and Game, Division of Commercial Fisheries. 2017. Daily salmon escapement counts from the OceanAK database, Alaska, 1921-2017. Knowledge Network for Biocomplexity. doi:10.5063/F1S46Q6M.
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+esc <- read.csv("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/urn%3Auuid%3Af119a05b-bbe7-4aea-93c6-85434dcb1c5e", stringsAsFactors = F)
+head(esc)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+#Data Tidying
+
+Calculate annual, regional, total escapement
+
+* `separate` the data into year - month - day
+* `group_by` `summarize` to calculate the sum over unique region-year-species combinations
+* `filter` for salmon species
+
+```{r}
+annual_esc <- esc %>% 
+  separate(sampleDate, into = c("year","month","day"), sep = "-") %>% 
+  mutate(year = as.numeric(year)) %>% 
+  group_by(year,SASAP.Region,Species) %>%
+  summarize(escapement = sum(DailyCount), n_obs = n()) %>% 
+  filter(Species %in% c("Chinook","Sockeye","Pink","Chum","Coho"))
+
+
+head(annual_esc)
+```
+
+Now we have the total count by year and region. Creating an interactive Data Table.
+
+```{r}
+datatable(annual_esc)
+```
+
+
+
+
+#Static Plots
+
+Now were gonna make a plot. Note that in the AESTHETICS (aes) call, everything should refer to a column in your data.
+
+RColorbrewer. tons of GGplot palettes.
+
+timeseries of Kodiak escapement by species
+```{r}
+
+mytheme <- theme_light() + theme(plot.title = element_text(hjust=1)) + 
+  theme(plot.subtitle = element_text(hjust=1))
+
+
+ggplot(data=filter(annual_esc, SASAP.Region=="Kodiak"), aes(x = year, y=escapement, color=Species)) + geom_line() + geom_point() + ylab(expression(Escapement~(number~of~fish)~W/m^2)) + xlab("Year") + ggtitle("Kodiak Salmon Escapement","Organized by Species") + mytheme
+
+```
+
+
+```{r}
+
+ggplot(annual_esc, aes(x = Species, y = escapement, fill = Species)) + geom_col()
+
+```
+
+```{r}
+
+ggplot(annual_esc, aes(x = Species, y = escapement, fill=SASAP.Region)) + geom_col()
+
+```
+
+
+
+
+```{r}
+ggplot(filter(annual_esc, SASAP.Region == "Kodiak", Species == "Chum" | Species == "Coho" | Species == "Chinook"), aes(x = year, y = escapement, color = Species)) + 
+    geom_line() +
+    geom_point() +
+    ylab("Escapement") +
+    ggtitle("Kodiak Salmon Escapement") +
+    theme_bw()
+```
+
+
+```{r}
+ggplot(filter(annual_esc, SASAP.Region == "Kodiak", Species == "Coho"), aes(x = year, y = escapement, color = escapement)) + 
+    geom_line() +
+    geom_point() +
+    ylab("Escapement") +
+    ggtitle("Kodiak Salmon Escapement") +
+    theme_bw()
+```
+
+#Interactive Map
