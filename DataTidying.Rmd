@@ -126,7 +126,7 @@ Learning how to spread data.
 
 ```{r}
 catch_wide <- catch_cleaned %>% 
-  filter (Year > 1990) %>% 
+  filter (Year > 1980) %>% 
   select(-catch_thousands) %>% 
   spread(key = Year, value = catch) #%>% 
  # select(-Region,-species)
@@ -164,5 +164,9 @@ dates_unite <- dates_sep %>%
 
 head(dates_unite)
   
+# @Ropensci, @Rstats can help with problems
+
 ```
 
+
+for dates you can you the LUBRIDATE package.... the name of this... skjsjksjskjskjskjs
