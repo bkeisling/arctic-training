@@ -62,7 +62,7 @@ RColorbrewer. tons of GGplot palettes.
 timeseries of Kodiak escapement by species
 ```{r}
 
-mytheme <- theme_light() + theme(plot.title = element_text(hjust=1)) + 
+mytheme <- theme_classic() + theme(plot.title = element_text(hjust=1)) + 
   theme(plot.subtitle = element_text(hjust=1))
 
 
@@ -104,5 +104,33 @@ ggplot(filter(annual_esc, SASAP.Region == "Kodiak", Species == "Coho"), aes(x = 
     ggtitle("Kodiak Salmon Escapement") +
     theme_bw()
 ```
+
+
+Plot timeseries of escapement by species for all regions
+
+```{r, fig.height=6, fig.width=10}
+
+
+mytheme <- theme_classic() + theme(plot.title = element_text(hjust=1)) + 
+  theme(plot.subtitle = element_text(hjust=1))
+
+ggplot(annual_esc, aes(x = year, y = escapement, color = Species)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~SASAP.Region, scales = "free_y") +
+  ylab("escapement (number of fish)")
+  mytheme
+
+ggsave("region_escapement.pdf")
+```
+
+Now what if we want to save the data that we have cleaned up and modified?
+
+```{r}
+write.csv(annual_esc,"annual_escapement.txt", row.names = F)
+```
+
+
+
 
 #Interactive Map
