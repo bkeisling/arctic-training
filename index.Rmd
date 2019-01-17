@@ -6,15 +6,16 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 Load in libraries
-```{r, warning = F, message = F}
+```{r, warning = F, message = F, echo = F}
 library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(DT)
+library(leaflet)
 ```
 
 Read in data from: Alaska Department of Fish and Game, Division of Commercial Fisheries. 2017. Daily salmon escapement counts from the OceanAK database, Alaska, 1921-2017. Knowledge Network for Biocomplexity. doi:10.5063/F1S46Q6M.
@@ -108,8 +109,7 @@ ggplot(filter(annual_esc, SASAP.Region == "Kodiak", Species == "Coho"), aes(x = 
 
 Plot timeseries of escapement by species for all regions
 
-```{r, fig.height=6, fig.width=10}
-
+```{r, fig.height=6, fig.width=10, echo = FALSE}
 
 mytheme <- theme_classic() + theme(plot.title = element_text(hjust=1)) + 
   theme(plot.subtitle = element_text(hjust=1))
@@ -118,10 +118,10 @@ ggplot(annual_esc, aes(x = year, y = escapement, color = Species)) +
   geom_line() +
   geom_point() +
   facet_wrap(~SASAP.Region, scales = "free_y") +
-  ylab("escapement (number of fish)")
+  ylab("escapement (number of fish)") +
   mytheme
 
-ggsave("region_escapement.pdf")
+#ggsave("region_escapement.pdf") # PNG, JPEG (raster) or SVG/PDF/ESP (vector for editing after)
 ```
 
 Now what if we want to save the data that we have cleaned up and modified?
@@ -131,6 +131,31 @@ write.csv(annual_esc,"annual_escapement.txt", row.names = F)
 ```
 
 
-
-
 #Interactive Map
+
+Make a lap using leaflet
+
+* find unique locations with lat/long values
+
+```{r}
+locations <- esc %>% 
+  drop_na() %>% 
+  distinct(Location, Latitude, Longitude) %>% 
+  drop_na()
+
+datatable(locations)
+```
+
+Now that we have the locations we can create a leaflet map.
+
+```{r}
+leaflet(locations) %>% 
+  addTiles() %>% 
+  addMarkers(~ Longitude, ~ Latitude, popup= ~ Location)
+
+#package called SF or geomSF allows you to make maps using GGplot. 
+#you have to set leaflet to use the projection that is within the tiles you are using. based on your basemap. you can use ESRI's geospatial network. so you just have to look into these tile server things...
+```
+
+
+
