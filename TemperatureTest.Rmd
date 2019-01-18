@@ -1,0 +1,24 @@
+---
+title: "TestingFunctions"
+author: "Benjamin Keisling"
+date: "1/17/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+source the script which has the functions.
+
+```{r}
+source("celsius.R")
+```
+
+test the functions 
+
+```{r}
+airtemps <- c(10,15)
+farenheight(airtemps)
+```
+
